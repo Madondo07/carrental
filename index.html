@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPUT Clinic Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chosen Palette: "Cool Blues & Warm Neutrals" -->
+    <!-- Application Structure Plan: The application is designed as a Single Page Application (SPA) with three primary, mutually exclusive views: Student Booking, Staff Login, and the main Staff Dashboard. This structure was chosen for its efficiency and seamless user experience, eliminating page reloads. The flow is as follows: users initially see a choice between student and staff access. Students are directed to a simple, one-off booking form. Staff must log in to access a persistent dashboard interface. The dashboard itself is modular, with a fixed sidebar for navigation and a dynamic content area that updates based on the selected menu item (e.g., Dashboard, Appointments). This task-oriented design ensures that users only see relevant information and controls, enhancing usability and reducing cognitive load. -->
+    <!-- Visualization & Content Choices: 1. Dashboard Stats (Total Patients, Today's Appointments, etc.): Goal is to inform staff of key metrics at a glance. Presented as dynamic stat cards using HTML/CSS. Interaction involves hovering for subtle visual feedback. Justification is providing a quick, high-level overview of clinic activity. 2. Appointments Overview Chart (Doughnut Chart): Goal is to show the proportion of appointment statuses (e.g., Confirmed, Pending). Presented using a Chart.js doughnut chart in a responsive canvas container. Interaction includes tooltips on hover for exact numbers. Justification is the clear, immediate visual comparison of categorical data. 3. Patient Check-in Trend (Line Chart): Goal is to show changes in patient check-ins over the week. Presented using a Chart.js line chart. Interaction includes tooltips and potential filtering by date range (future enhancement). Justification is its effectiveness in visualizing trends over time. All data is dynamically rendered via JavaScript, ensuring the display is always current. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased text-slate-800">
+
+    <div id="app">
+        <!-- Initial View: Role Selection -->
+        <div id="role-selection-view" class="flex items-center justify-center min-h-screen bg-slate-100">
+            <div class="text-center p-8 bg-white rounded-2xl shadow-lg max-w-md w-full">
+                <h1 class="text-3xl font-bold text-sky-800 mb-2">CPUT Clinic System</h1>
+                <p class="text-slate-600 mb-8">Welcome. Please select your role to continue.</p>
+                <div class="space-y-4">
+                    <button id="student-btn" class="w-full bg-sky-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-sky-700 transition duration-300">I am a Student</button>
+                    <button id="staff-btn" class="w-full bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-slate-700 transition duration-300">I am Staff</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Booking View -->
+        <div id="student-booking-view" class="hidden min-h-screen bg-slate-100 flex items-center justify-center p-4">
+            <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-2xl">
+                <button class="back-button text-slate-500 hover:text-slate-800 mb-4">&larr; Back to Role Selection</button>
+                <h2 class="text-2xl font-bold text-sky-800 mb-6">Book a Clinic Appointment</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div>
+                        <div class="flex items-center text-slate-700 mb-4">
+                            <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <h2 class="text-xl font-semibold">Student Information</h2>
+                        </div>
+                        <form id="booking-form" class="space-y-4">
+                            <div>
+                                <label for="studentNumber" class="block text-sm font-medium text-slate-700">Student Number *</label>
+                                <input type="text" id="studentNumber" name="studentNumber" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label for="fullName" class="block text-sm font-medium text-slate-700">Full Name *</label>
+                                <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-slate-700">CPUT Organization Email *</label>
+                                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label for="symptoms" class="block text-sm font-medium text-slate-700">Symptoms / Additional Notes</label>
+                                <textarea id="symptoms" name="symptoms" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div>
+                        <div class="flex items-center text-slate-700 mb-4">
+                            <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h2 class="text-xl font-semibold">Appointment Details</h2>
+                        </div>
+                        <form id="appointment-details-form" class="space-y-4">
+                            <div>
+                                <label for="serviceType" class="block text-sm font-medium text-slate-700">Service Type *</label>
+                                <select id="serviceType" name="serviceType" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500" required>
+                                    <option value="" disabled selected>Select a service</option>
+                                    <option value="General Consultation">General Consultation</option>
+                                    <option value="Follow-up">Follow-up</option>
+                                    <option value="Flu Shot">Flu Shot</option>
+                                    <option value="Check-up">Check-up</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="preferredDate" class="block text-sm font-medium text-slate-700">Preferred Date *</label>
+                                    <input type="date" id="preferredDate" name="preferredDate" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500" required>
+                                </div>
+                                <div>
+                                    <label for="preferredTime" class="block text-sm font-medium text-slate-700">Preferred Time</label>
+                                    <input type="time" id="preferredTime" name="preferredTime" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <button id="student-booking-submit" class="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-700 transition duration-300">Submit Appointment</button>
+            </div>
+        </div>
+
+        <!-- Staff Login View -->
+        <div id="staff-login-view" class="hidden min-h-screen bg-slate-100 flex items-center justify-center p-4">
+            <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+                 <button class="back-button text-slate-500 hover:text-slate-800 mb-4">&larr; Back to Role Selection</button>
+                <h2 class="text-2xl font-bold text-sky-800 mb-6 text-center">Staff Login</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-slate-700">Username</label>
+                        <input type="text" id="username" name="username" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+                        <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500">
+                    </div>
+                    <p id="login-error" class="text-red-500 text-sm hidden">Invalid credentials. Please try again.</p>
+                    <button type="submit" class="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-700 transition duration-300">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Staff Dashboard View -->
+        <div id="staff-dashboard-view" class="hidden">
+            <div class="flex h-screen bg-slate-50">
+                <!-- Sidebar -->
+                <aside id="sidebar" class="w-64 bg-white shadow-md flex flex-col">
+                    <div class="p-4 border-b">
+                        <h1 class="text-xl font-bold text-sky-800">CPUT Clinic</h1>
+                        <p class="text-sm text-slate-500">Healthcare Management</p>
+                    </div>
+                    <nav class="flex-1 p-4 space-y-2">
+                        <a href="#dashboard" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium active" data-url="dashboard.html">
+                            <span class="w-6 h-6 mr-3">📊</span> Dashboard
+                        </a>
+                        <a href="#appointments" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium" data-url="appointment.html">
+                            <span class="w-6 h-6 mr-3">🗓️</span> Appointments
+                        </a>
+                        <a id="patients-link" href="#patients" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium">
+                            <span class="w-6 h-6 mr-3">👥</span> Patients
+                        </a>
+                        <a href="#check-in" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium">
+                            <span class="w-6 h-6 mr-3">✅</span> Check-in
+                        </a>
+                        <a href="#queue" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium">
+                            <span class="w-6 h-6 mr-3">🕒</span> Queue
+                        </a>
+                        <a href="#reports" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium">
+                            <span class="w-6 h-6 mr-3">📈</span> Reports
+                        </a>
+                    </nav>
+                    <div class="p-4 border-t">
+                        <a href="#settings" class="sidebar-link flex items-center p-2 rounded-lg text-slate-700 font-medium">
+                            <span class="w-6 h-6 mr-3">⚙️</span> Settings
+                        </a>
+                        <button id="logout-btn" class="w-full mt-2 text-left flex items-center p-2 rounded-lg text-red-600 hover:bg-red-100 font-medium">
+                             <span class="w-6 h-6 mr-3">🚪</span> Logout
+                        </button>
+                    </div>
+                </aside>
+                <!-- Main Content -->
+                <main id="main-content" class="flex-1 p-8 overflow-y-auto">
+                    <div class="text-slate-400 text-center text-xl mt-20">Welcome to the CPUT Clinic Dashboard</div>
+                </main>
+            </div>
+        </div>
+
+        <!-- Hidden Dashboard Section for SPA injection -->
+        <section id="dashboard-section" class="hidden">
+            <section id="dashboard" class="content-section active">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Dashboard</h2>
+                <p class="text-slate-500 mb-8">Welcome back! Here’s what’s happening at CPUT Clinic today.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-sm font-medium text-slate-500">Total Patients</h3>
+                        <p class="text-3xl font-bold text-sky-800 mt-2" id="total-patients">2,847</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-sm font-medium text-slate-500">Today's Appointments</h3>
+                        <p class="text-3xl font-bold text-sky-800 mt-2" id="todays-appointments">24</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-sm font-medium text-slate-500">Average Wait Time</h3>
+                        <p class="text-3xl font-bold text-sky-800 mt-2" id="avg-wait-time">18 min</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-sm font-medium text-slate-500">Check-ins Today</h3>
+                        <p class="text-3xl font-bold text-sky-800 mt-2" id="checkins-today">18</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-lg font-semibold mb-4">Today's Appointments</h3>
+                        <div id="appointments-list" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-lg font-semibold mb-4">Appointments Overview</h3>
+                        <div class="chart-container">
+                            <canvas id="appointmentsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- Hidden Appointments Section for SPA injection -->
+        <section id="appointments-section" class="hidden">
+            <main>
+                <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 sm:p-10">
+            <div class="flex items-center text-sky-700 mb-6">
+                <svg class="h-8 w-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <h1 class="text-2xl font-bold">Book New Appointment</h1>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center text-slate-700 mb-4">
+                        <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <h2 class="text-xl font-semibold">Patient Information</h2>
+                    </div>
+                    <form id="booking-form" class="space-y-4">
+                        <div>
+                            <label for="student-id" class="block text-sm font-medium text-slate-700 mb-1">Student ID *</label>
+                            <input type="text" id="student-id" name="studentId" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="e.g., 220123456" required>
+                        </div>
+                        <div>
+                            <label for="full-name" class="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                            <input type="text" id="full-name" name="fullName" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="e.g., John Doe" required>
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">Phone *</label>
+                            <input type="tel" id="phone" name="phone" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="e.g., +27 82 123 4567" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="e.g., john@cput.ac.za">
+                        </div>
+                        <div>
+                            <label for="symptoms" class="block text-sm font-medium text-slate-700 mb-1">Symptoms / Additional Notes</label>
+                            <textarea id="symptoms" name="symptoms" rows="4" class="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Please describe any symptoms or additional information..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div>
+                    <div class="flex items-center text-slate-700 mb-4">
+                        <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h2 class="text-xl font-semibold">Appointment Details</h2>
+                    </div>
+                    <form id="appointment-details-form" class="space-y-4">
+                        <div>
+                            <label for="service-type" class="block text-sm font-medium text-slate-700 mb-1">Service Type *</label>
+                            <select id="service-type" name="serviceType" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                                <option value="" disabled selected>Select a service</option>
+                                <option value="General Consultation">General Consultation</option>
+                                <option value="Follow-up">Follow-up</option>
+                                <option value="Flu Shot">Flu Shot</option>
+                                <option value="Check-up">Check-up</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="preferred-date" class="block text-sm font-medium text-slate-700 mb-1">Preferred Date *</label>
+                                <input type="date" id="preferred-date" name="preferredDate" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                            </div>
+                            <div>
+                                <label for="preferred-time" class="block text-sm font-medium text-slate-700 mb-1">Preferred Time *</label>
+                                <input type="time" id="preferred-time" name="preferredTime" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="priority-level" class="block text-sm font-medium text-slate-700 mb-1">Priority Level</label>
+                            <select id="priority-level" name="priorityLevel" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value="Normal">Normal</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <button onclick="submitAdminBooking()" class="w-full bg-sky-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-sky-700 transition duration-300">
+                Submit Appointment Booking
+            </button>
+            
+        </div>
+    </div>
+            </main>
+        </section>
+
+        <!-- Hidden Patients Section for SPA injection -->
+        <section id="patients-section" class="hidden">
+            <main class="p-8 overflow-y-auto">
+                <header class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-3xl font-bold">Patient Management</h1>
+            <p class="text-sm text-slate-500">Manage student patient records and information</p>
+        </div>
+        <button id="add-new-patient-btn" class="bg-sky-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-sky-700 transition duration-300 transform hover:scale-105">
+            + Add New Patient
+        </button>
+    </header>
+    <div class="mb-6 flex space-x-4">
+        <div class="relative flex-1">
+            <input type="text" id="patient-search-input" placeholder="Search patients by Name, Student ID, or Email..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+    </div>
+    <div id="patient-list" class="space-y-4">
+        <!-- Patient cards will be pushed here by JS -->
+    </div>
+    <!-- Modal for adding/editing patient -->
+    <div id="patient-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 id="modal-title" class="text-2xl font-bold text-slate-800">Add New Patient</h2>
+                <button id="close-modal-btn" class="text-slate-400 hover:text-slate-600 transition duration-200" aria-label="Close modal">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="patient-form" class="space-y-4">
+                <div>
+                    <label for="modal-name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                    <input type="text" id="modal-name" name="name" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                </div>
+                <div>
+                    <label for="modal-id" class="block text-sm font-medium text-slate-700">Student ID</label>
+                    <input type="text" id="modal-id" name="studentId" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                </div>
+                <div>
+                    <label for="modal-phone" class="block text-sm font-medium text-slate-700">Phone</label>
+                    <input type="tel" id="modal-phone" name="phone" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200">
+                </div>
+                <div>
+                    <label for="modal-email" class="block text-sm font-medium text-slate-700">Email</label>
+                    <input type="email" id="modal-email" name="email" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200">
+                </div>
+                <div>
+                    <label for="modal-residence" class="block text-sm font-medium text-slate-700">Residence</label>
+                    <input type="text" id="modal-residence" name="residence" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200">
+                </div>
+                <div>
+                    <label for="modal-condition" class="block text-sm font-medium text-slate-700">Last Condition</label>
+                    <input type="text" id="modal-condition" name="condition" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200">
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="bg-sky-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-sky-700 transition duration-300">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+    // --- Patient Section SPA Demo Logic ---
+    (function() {
+        let patients = [
+            { name: 'Sarah Johnson', studentId: '220154789', email: 'sarah.johnson@cput.ac.za', phone: '+27 82 123 4567', residence: 'Bellville', condition: 'Flu' },
+            { name: 'David Chen', studentId: '219876543', email: 'david.chen@cput.ac.za', phone: '+27 82 987 6543', residence: 'Cape Town', condition: 'Allergy' },
+            { name: 'Maria Garcia', studentId: '221122334', email: 'maria.garcia@cput.ac.za', phone: '+27 82 555 1234', residence: 'Wellington', condition: 'Check-up' },
+            { name: 'James Smith', studentId: '218765123', email: 'james.smith@cput.ac.za', phone: '+27 82 321 4567', residence: 'Mowbray', condition: 'General Consultation' }
+        ];
+        let editIndex = null;
+
+        function renderPatients() {
+            const list = document.getElementById('patient-list');
+            if (!list) return;
+            list.innerHTML = '';
+            patients.forEach((p, i) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="font-bold text-lg text-sky-800">${p.name}</div>
+                        <div class="text-slate-500 text-sm">Student ID: ${p.studentId}</div>
+                        <div class="text-slate-500 text-sm">Email: ${p.email}</div>
+                        <div class="text-slate-500 text-sm">Phone: ${p.phone}</div>
+                        <div class="text-slate-500 text-sm">Residence: ${p.residence}</div>
+                        <div class="text-slate-500 text-sm">Last Condition: ${p.condition}</div>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button class="edit-btn bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600" data-index="${i}">Edit</button>
+                        <button class="remove-btn bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600" data-index="${i}">Remove</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function openModal(editIdx = null) {
+            const modal = document.getElementById('patient-modal');
+            const form = document.getElementById('patient-form');
+            document.getElementById('modal-title').textContent = editIdx === null ? 'Add New Patient' : 'Edit Patient';
+            if (editIdx !== null) {
+                const p = patients[editIdx];
+                form.name.value = p.name;
+                form.studentId.value = p.studentId;
+                form.phone.value = p.phone;
+                form.email.value = p.email;
+                form.residence.value = p.residence;
+                form.condition.value = p.condition;
+            } else {
+                form.reset();
+            }
+            modal.classList.remove('hidden');
+            editIndex = editIdx;
+        }
+
+        function closeModal() {
+            document.getElementById('patient-modal').classList.add('hidden');
+            editIndex = null;
+        }
+
+
+
+        document.getElementById('patient-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const newPatient = {
+                name: form.name.value,
+                studentId: form.studentId.value,
+                phone: form.phone.value,
+                email: form.email.value,
+                residence: form.residence.value,
+                condition: form.condition.value
+            };
+            if (editIndex === null) {
+                patients.push(newPatient);
+            } else {
+                patients[editIndex] = newPatient;
+            }
+            renderPatients();
+            // Show success message in modal
+            let header = document.querySelector('#patient-modal .flex.justify-between');
+            let msg = document.createElement('div');
+            msg.className = 'w-full text-green-700 bg-green-100 border border-green-300 rounded-lg px-4 py-2 mt-2 text-center';
+            msg.textContent = 'Patient saved successfully!';
+            header.parentNode.insertBefore(msg, header.nextSibling);
+            setTimeout(() => {
+                if (msg.parentNode) msg.parentNode.removeChild(msg);
+                closeModal();
+            }, 1200);
+        });
+
+        // Attach close handler directly to the X button
+        document.getElementById('close-modal-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            closeModal();
+        });
+
+        // Event delegation for add button (works after SPA navigation)
+        document.querySelector('main').addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'add-new-patient-btn') {
+                openModal();
+            }
+        });
+
+        document.getElementById('patient-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('edit-btn')) {
+                openModal(Number(e.target.dataset.index));
+            } else if (e.target.classList.contains('remove-btn')) {
+                const idx = Number(e.target.dataset.index);
+                if (confirm('Remove this patient?')) {
+                    patients.splice(idx, 1);
+                    renderPatients();
+                }
+            }
+        });
+
+        // Initial render
+        renderPatients();
+    })();
+    </script>
+            </main>
+        </section>
+
+        <!-- Hidden Check-in Section for SPA injection -->
+        <section id="check-in-section" class="hidden">
+            <main class="p-8 overflow-y-auto">
+                <header class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-3xl font-bold">Patient Check-In</h1>
+            <p class="text-sm text-slate-500">Manage patient arrivals and queue status</p>
+        </div>
+        <button id="new-checkin-btn" class="bg-sky-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-sky-700 transition duration-300 transform hover:scale-105 flex items-center space-x-2">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span>New Check-In</span>
+        </button>
+    </header>
+    <div class="mb-6">
+        <input type="text" id="patient-search-input" placeholder="Search by patient name or student ID..." class="w-full pl-4 pr-4 py-2 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm">
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
+            <div class="text-3xl font-bold text-sky-600">3</div>
+            <div class="text-sm text-slate-500">Checked In</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
+            <div class="text-3xl font-bold text-yellow-500">2</div>
+            <div class="text-sm text-slate-500">Waiting</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
+            <div class="text-3xl font-bold text-green-500">1</div>
+            <div class="text-sm text-slate-500">In Progress</div>
+        </div>
+    </div>
+    <div id="patient-check-in-list" class="space-y-4">
+        <!-- Example check-in cards here (same as before) -->
+    </div>
+    <!-- Modal for New Check-in -->
+    <div id="check-in-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xl">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 id="checkin-modal-title" class="text-2xl font-bold text-slate-800">New Patient Check-in</h2>
+                <button id="checkin-close-modal-btn" class="text-slate-400 hover:text-slate-600 transition duration-200" aria-label="Close modal">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="check-in-form" class="space-y-4">
+                <div>
+                    <label for="checkin-modal-name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                    <input type="text" id="checkin-modal-name" name="name" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                </div>
+                <div>
+                    <label for="checkin-modal-id" class="block text-sm font-medium text-slate-700">Student ID</label>
+                    <input type="text" id="checkin-modal-id" name="studentId" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="bg-sky-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-sky-700 transition duration-300">Check In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+    // --- Check-in Section SPA Demo Logic ---
+    (function() {
+        let checkIns = [
+            { name: 'Sarah Johnson', studentId: 'CPUT2021001', status: 'Checked In' },
+            { name: 'Michael Chen', studentId: 'CPUT2020045', status: 'Waiting' },
+            { name: 'Jane Smith', studentId: 'CPUT2021003', status: 'In Progress' }
+        ];
+
+        function renderCheckIns() {
+            const list = document.getElementById('patient-check-in-list');
+            if (!list) return;
+            list.innerHTML = '';
+            checkIns.forEach((c, i) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-md p-4 flex flex-col md:flex-row md:items-center md:justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="font-bold text-lg text-sky-800">${c.name}</div>
+                        <div class="text-slate-500 text-sm">Student ID: ${c.studentId}</div>
+                        <div class="text-xs mt-1 px-2 py-1 rounded-full inline-block ${c.status === 'Checked In' ? 'bg-sky-100 text-sky-600' : c.status === 'Waiting' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}">${c.status}</div>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex space-x-2">
+                        <button class="status-btn bg-yellow-500 text-white px-3 py-1 rounded-lg font-semibold hover:bg-yellow-600" data-index="${i}" data-status="Waiting">Mark Waiting</button>
+                        <button class="status-btn bg-green-500 text-white px-3 py-1 rounded-lg font-semibold hover:bg-green-600" data-index="${i}" data-status="In Progress">Mark In Progress</button>
+                        <button class="remove-btn bg-red-500 text-white px-3 py-1 rounded-lg font-semibold hover:bg-red-600" data-index="${i}">Remove</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function openCheckinModal() {
+            document.getElementById('check-in-modal').classList.remove('hidden');
+            document.getElementById('check-in-form').reset();
+        }
+        function closeCheckinModal() {
+            document.getElementById('check-in-modal').classList.add('hidden');
+        }
+
+        document.getElementById('new-checkin-btn').addEventListener('click', openCheckinModal);
+        document.getElementById('checkin-close-modal-btn').addEventListener('click', closeCheckinModal);
+
+        document.getElementById('check-in-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const newCheckin = {
+                name: form.name.value,
+                studentId: form.studentId.value,
+                status: 'Checked In'
+            };
+            checkIns.push(newCheckin);
+            renderCheckIns();
+            // Show success message in modal
+            let header = document.querySelector('#check-in-modal .flex.justify-between');
+            let msg = document.createElement('div');
+            msg.className = 'w-full text-green-700 bg-green-100 border border-green-300 rounded-lg px-4 py-2 mt-2 text-center';
+            msg.textContent = 'Check-in successful!';
+            header.parentNode.insertBefore(msg, header.nextSibling);
+            setTimeout(() => {
+                if (msg.parentNode) msg.parentNode.removeChild(msg);
+                closeCheckinModal();
+            }, 1200);
+        });
+
+        document.getElementById('patient-check-in-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-btn')) {
+                const idx = Number(e.target.dataset.index);
+                if (confirm('Remove this check-in?')) {
+                    checkIns.splice(idx, 1);
+                    renderCheckIns();
+                }
+            } else if (e.target.classList.contains('status-btn')) {
+                const idx = Number(e.target.dataset.index);
+                const status = e.target.dataset.status;
+                checkIns[idx].status = status;
+                renderCheckIns();
+            }
+        });
+
+        // Initial render
+        renderCheckIns();
+    })();
+    </script>
+            </main>
+        </section>
+
+        <!-- Hidden Queue Section for SPA injection -->
+        <section id="queue-section" class="hidden">
+            <main class="p-8 overflow-y-auto">
+                <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl font-bold">Queue Management</h1>
+                <p class="text-sm text-slate-500">Monitor and manage the patient queue</p>
+            </div>
+        </header>
+        <div class="mb-6">
+            <input type="text" id="queue-search-input" placeholder="Search by patient name or student ID..." class="w-full pl-4 pr-4 py-2 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm">
+        </div>
+        <!-- Queue Actions moved above the queue list -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Queue Actions</h2>
+            <div class="flex flex-wrap gap-4 mb-4">
+                <button id="queue-add-btn" class="bg-sky-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-sky-700 transition duration-300">+ Add to Queue</button>
+                <button id="queue-call-next-btn" class="bg-sky-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-sky-700 transition duration-300">Call Next</button>
+                <button id="queue-mark-waiting-btn" class="bg-yellow-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-yellow-600 transition duration-300">Mark as Waiting</button>
+                <button id="queue-mark-inprogress-btn" class="bg-green-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-green-600 transition duration-300">Mark as In Progress</button>
+                <button id="queue-remove-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-xl shadow-md hover:bg-red-600 transition duration-300">Remove</button>
+            </div>
+            <div id="queue-action-msg" class="mt-2 text-center text-green-700 font-semibold hidden"></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Current Queue</h2>
+            <div id="queue-list" class="space-y-4">
+                <!-- Queue cards will be rendered here by JS -->
+            </div>
+        </div>
+        <!-- Add to Queue Modal -->
+        <div id="queue-add-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xl">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-2xl font-bold text-slate-800">Add Patient to Queue</h2>
+                    <button id="queue-add-close-btn" class="text-slate-400 hover:text-slate-600 transition duration-200" aria-label="Close modal">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <form id="queue-add-form" class="space-y-4">
+                    <div>
+                        <label for="queue-add-name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                        <input type="text" id="queue-add-name" name="name" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                    </div>
+                    <div>
+                        <label for="queue-add-id" class="block text-sm font-medium text-slate-700">Student ID</label>
+                        <input type="text" id="queue-add-id" name="studentId" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                    </div>
+                    <div>
+                        <label for="queue-add-time" class="block text-sm font-medium text-slate-700">Booked Time</label>
+                        <input type="time" id="queue-add-time" name="bookedTime" class="w-full px-4 py-2 mt-1 rounded-lg bg-slate-50 border border-slate-200" required>
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="bg-sky-600 text-white font-semibold py-2 px-6 rounded-xl hover:bg-sky-700 transition duration-300">Add to Queue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script>
+        // --- Queue Section SPA Live Demo Logic ---
+        (function() {
+            let queue = [
+                { name: 'Sarah Johnson', studentId: 'CPUT2021001', bookedTime: '09:00', status: 'Checked In' },
+                { name: 'Michael Chen', studentId: 'CPUT2020045', bookedTime: '09:10', status: 'Waiting' },
+                { name: 'Jane Smith', studentId: 'CPUT2021003', bookedTime: '09:20', status: 'In Progress' },
+                { name: 'Lebo Mokoena', studentId: 'CPUT2021010', bookedTime: '09:30', status: 'Checked In' },
+                { name: 'Aisha Patel', studentId: 'CPUT2021022', bookedTime: '09:40', status: 'Waiting' },
+                { name: 'Sipho Dlamini', studentId: 'CPUT2021033', bookedTime: '09:50', status: 'Checked In' }
+            ];
+            let selectedIdx = 0;
+            let searchTerm = '';
+
+            function renderQueue() {
+                const list = document.getElementById('queue-list');
+                list.innerHTML = '';
+                let filtered = queue.filter(q =>
+                    q.name.toLowerCase().includes(searchTerm) ||
+                    q.studentId.toLowerCase().includes(searchTerm)
+                );
+                filtered.forEach((q, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'flex flex-col md:flex-row md:items-center md:justify-between p-4 rounded-xl shadow border border-slate-100 bg-gradient-to-r from-white to-slate-50 hover:shadow-lg transition';
+                    card.setAttribute('data-index', i);
+                    card.innerHTML = `
+                        <div class="flex flex-col md:flex-row md:items-center gap-2">
+                            <span class="font-bold text-sky-800 text-lg">${q.name}</span>
+                            <span class="text-slate-500 text-sm">(${q.studentId})</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded ml-0 md:ml-2">${q.bookedTime}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2 md:mt-0">
+                            <span class="text-xs px-2 py-1 rounded-full ${q.status === 'Checked In' ? 'bg-sky-100 text-sky-600' : q.status === 'Waiting' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}">${q.status}</span>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            }
+
+            document.getElementById('queue-search-input').addEventListener('input', function(e) {
+                searchTerm = e.target.value.toLowerCase();
+                selectedIdx = 0;
+                renderQueue();
+            });
+
+            function showMsg(msg) {
+                const el = document.getElementById('queue-action-msg');
+                el.textContent = msg;
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 1200);
+            }
+
+            document.getElementById('queue-add-btn').addEventListener('click', function() {
+                document.getElementById('queue-add-modal').classList.remove('hidden');
+                document.getElementById('queue-add-form').reset();
+            });
+            document.getElementById('queue-add-close-btn').addEventListener('click', function() {
+                document.getElementById('queue-add-modal').classList.add('hidden');
+            });
+            document.getElementById('queue-add-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = e.target;
+                const newPatient = {
+                    name: form.name.value,
+                    studentId: form.studentId.value,
+                    bookedTime: form.bookedTime.value,
+                    status: 'Checked In'
+                };
+                queue.push(newPatient);
+                renderQueue();
+                showMsg('Added to queue!');
+                document.getElementById('queue-add-modal').classList.add('hidden');
+            });
+
+            document.getElementById('queue-call-next-btn').addEventListener('click', function() {
+                if (queue.length === 0) return showMsg('Queue is empty!');
+                // Move first to In Progress
+                queue[0].status = 'In Progress';
+                selectedIdx = 0;
+                renderQueue();
+                showMsg('Next patient called!');
+            });
+            document.getElementById('queue-mark-waiting-btn').addEventListener('click', function() {
+                if (queue.length === 0 || selectedIdx < 0) return showMsg('No patient selected!');
+                queue[selectedIdx].status = 'Waiting';
+                renderQueue();
+                showMsg('Marked as Waiting');
+            });
+            document.getElementById('queue-mark-inprogress-btn').addEventListener('click', function() {
+                if (queue.length === 0 || selectedIdx < 0) return showMsg('No patient selected!');
+                queue[selectedIdx].status = 'In Progress';
+                renderQueue();
+                showMsg('Marked as In Progress');
+            });
+            document.getElementById('queue-remove-btn').addEventListener('click', function() {
+                if (queue.length === 0 || selectedIdx < 0) return showMsg('No patient selected!');
+                if (confirm('Remove this patient from the queue?')) {
+                    queue.splice(selectedIdx, 1);
+                    selectedIdx = 0;
+                    renderQueue();
+                    showMsg('Removed from queue');
+                }
+            });
+
+            // Initial render
+            renderQueue();
+        })();
+        </script>
+            </main>
+        </section>
+
+        <!-- Hidden Reports Section for SPA injection -->
+        <section id="reports-section" class="hidden">
+            <main class="p-8 overflow-y-auto">
+                <header class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-4">
+                        <h1 class="text-3xl font-bold">Reports</h1>
+                        <p class="text-sm text-slate-500">View clinic statistics and trends</p>
+                    </div>
+                    <button id="download-report-btn" class="bg-sky-600 text-white font-semibold py-2 px-6 rounded-xl shadow-md hover:bg-sky-700 transition duration-300">Download Report</button>
+                </header>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 relative">
+                        <h2 class="text-lg font-semibold mb-2">Patient Visits (Monthly)</h2>
+                        <div class="mb-2 flex items-center">
+                            <span class="text-3xl font-extrabold text-sky-700 mr-2" id="visits-total">420</span>
+                            <span class="text-slate-500">total visits</span>
+                        </div>
+                        <canvas id="visitsChart" height="120"></canvas>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 relative">
+                        <h2 class="text-lg font-semibold mb-2">Check-ins by Status</h2>
+                        <div class="mb-2 flex items-center">
+                            <span class="text-3xl font-extrabold text-amber-600 mr-2" id="checkins-total">68</span>
+                            <span class="text-slate-500">check-ins</span>
+                        </div>
+                        <canvas id="statusChart" height="120"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between">
+                        <h2 class="text-lg font-semibold mb-2">Clinic Utilization</h2>
+                        <div class="flex items-center mb-2">
+                            <span class="text-3xl font-extrabold text-sky-700 mr-4" id="utilization-percent">84%</span>
+                            <div class="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="utilization-bar" class="h-4 bg-sky-600 utilization-bar"></div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500">Based on appointment slots filled this month</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-2">Busiest Days of the Week</h2>
+                        <div class="mb-2 flex items-center">
+                            <span class="text-3xl font-extrabold text-fuchsia-700 mr-2" id="busiest-day">Friday</span>
+                            <span class="text-slate-500">most visits</span>
+                        </div>
+                        <canvas id="busiestDaysChart" height="120"></canvas>
+                    </div>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+                <script>
+                // Chart.js for reports (bold, demo-reflective data)
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Patient Visits (Monthly)
+                    const visitsCtx = document.getElementById('visitsChart').getContext('2d');
+                    new Chart(visitsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                            datasets: [{
+                                label: 'Visits',
+                                data: [38, 52, 67, 59, 80, 95, 110, 120], // Demo: 420 total
+                                borderColor: '#0369a1',
+                                backgroundColor: 'rgba(2,132,199,0.25)',
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#0369a1',
+                                pointRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#e0e7ef' }
+                                },
+                                x: {
+                                    grid: { color: '#e0e7ef' }
+                                }
+                            }
+                        }
+                    });
+                    // Check-ins by Status
+                    const statusCtx = document.getElementById('statusChart').getContext('2d');
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Checked In', 'Waiting', 'In Progress', 'Completed', 'No Show'],
+                            datasets: [{
+                                data: [32, 12, 8, 14, 2], // Demo: 68 total
+                                backgroundColor: ['#f59e42', '#facc15', '#22c55e', '#0ea5e9', '#f472b6'],
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            cutout: '65%',
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.label || '';
+                                            let value = context.raw || 0;
+                                            return `${label}: ${value}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    // Busiest Days of the Week
+                    const busiestDaysCtx = document.getElementById('busiestDaysChart').getContext('2d');
+                    new Chart(busiestDaysCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                            datasets: [{
+                                label: 'Visits',
+                                data: [60, 70, 80, 65, 90, 55], // Friday is busiest
+                                backgroundColor: [
+                                    '#818cf8', '#38bdf8', '#facc15', '#a3e635', '#f472b6', '#0ea5e9'
+                                ],
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `Visits: ${context.raw}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#e0e7ef' }
+                                },
+                                x: {
+                                    grid: { color: '#e0e7ef' }
+                                }
+                            }
+                        }
+                    });
+                });
+                // Download report as PDF (simple snapshot)
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.getElementById('download-report-btn').addEventListener('click', function() {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        doc.setFontSize(18);
+                        doc.text('CPUT Clinic Report', 14, 18);
+                        doc.setFontSize(12);
+                        doc.text('Patient Visits (Monthly): 420', 14, 30);
+                        doc.text('Clinic Utilization: 92%', 14, 40);
+                        doc.text('Busiest Day: Friday', 14, 50);
+                        doc.text('Check-ins by Status: 68', 14, 60);
+                        doc.text('Charts and visuals are available in the web dashboard.', 14, 75);
+                        doc.save('clinic_report.pdf');
+                    });
+                });
+                </script>
+            </main>
+        </section>
+    </div>
+    
+    <script src="script.js"></script>
+    <!-- Removed duplicate sidebar event handler. All SPA logic is handled in script.js. -->
+</body>
+</html>

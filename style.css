@@ -1,0 +1,73 @@
+/* Utilization bar width (moved from inline style) */
+.utilization-bar {
+    width: 84%;
+    transition: width 0.3s;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+    .sidebar-link, .sidebar-link span {
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+    }
+    .content-section, main, .p-8, .p-6, .p-4 {
+        padding: 1rem !important;
+    }
+    .rounded-xl, .rounded-2xl {
+        border-radius: 0.75rem !important;
+    }
+    .shadow-md, .shadow-xl, .shadow-2xl, .shadow-sm {
+        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07) !important;
+    }
+    .grid, .grid-cols-1, .md\:grid-cols-2, .md\:grid-cols-3, .lg\:grid-cols-3, .lg\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    .max-w-lg, .max-w-2xl, .max-w-sm, .max-w-xl {
+        max-width: 100% !important;
+    }
+    .w-64 {
+        width: 100% !important;
+    }
+    .h-screen {
+        height: auto !important;
+    }
+    .flex {
+        flex-direction: column !important;
+    }
+    .overflow-y-auto {
+        overflow-y: visible !important;
+    }
+}
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc; /* A warm neutral: slate-50 */
+}
+.sidebar-link {
+    transition: all 0.2s ease-in-out;
+}
+.sidebar-link:hover, .sidebar-link.active {
+    background-color: #e0f2fe; /* A complimentary color: sky-100 */
+    color: #0c4a6e; /* An accent color: sky-900 */
+    transform: translateX(4px);
+}
+.content-section {
+    display: none;
+}
+.content-section.active {
+    display: block;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 350px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}

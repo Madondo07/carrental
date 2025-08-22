@@ -1,0 +1,8 @@
+com\clinic\booking\controller\QueueEntryController.class
+com\clinic\booking\entity\QueueEntry.class
+com\clinic\booking\controller\PatientController.class
+com\clinic\booking\repository\QueueEntryRepository.class
+com\clinic\booking\entity\Patient.class
+com\clinic\booking\repository\PatientRepository.class
+com\clinic\booking\BookingApplication.class
+com\clinic\booking\service\EmailService.class
