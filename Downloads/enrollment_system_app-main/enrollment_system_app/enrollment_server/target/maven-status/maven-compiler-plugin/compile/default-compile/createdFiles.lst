@@ -1,0 +1,7 @@
+za\ac\mycput\enrollment_server\domain\Enrollment.class
+za\ac\mycput\enrollment_server\domain\User.class
+za\ac\mycput\enrollment_server\connection\DBInitializer.class
+za\ac\mycput\enrollment_server\Enrollment_server.class
+za\ac\mycput\enrollment_server\connection\DBConnection.class
+za\ac\mycput\enrollment_server\dao\EnrollmentDAO.class
+za\ac\mycput\enrollment_server\domain\Course.class
